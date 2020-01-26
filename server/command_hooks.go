@@ -64,15 +64,6 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		return &model.CommandResponse{}, nil
 	}
 
-	if action == "connect" {
-		if config.ServiceSettings.SiteURL == nil {
-			p.postCommandResponse(args, "Invalid SiteURL")
-			return &model.CommandResponse{}, nil
-		}
-		p.postCommandResponse(args, fmt.Sprintf("[Click here to link your Google Calendar.](%s/plugins/calendar/oauth/connect)", *config.ServiceSettings.SiteURL))
-		return &model.CommandResponse{}, nil
-	}
-
 	srv, err := p.getCalendarService(args.UserId)
 	if err != nil {
 		p.postCommandResponse(args, err.Error())
@@ -82,6 +73,13 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	location := p.getPrimaryCalendarLocation(userID)
 
 	switch action {
+	case "connect":
+		if config.ServiceSettings.SiteURL == nil {
+			p.postCommandResponse(args, "Invalid SiteURL")
+			return &model.CommandResponse{}, nil
+		}
+		p.postCommandResponse(args, fmt.Sprintf("[Click here to link your Google Calendar.](%s/plugins/calendar/oauth/connect)", *config.ServiceSettings.SiteURL))
+		return &model.CommandResponse{}, nil
 	case "list":
 		maxResults := 5
 		var err error
