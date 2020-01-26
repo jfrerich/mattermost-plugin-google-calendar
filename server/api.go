@@ -43,7 +43,6 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 
 func (p *Plugin) connectCalendar(w http.ResponseWriter, r *http.Request) {
 	authedUserID := r.Header.Get("Mattermost-User-ID")
-
 	if authedUserID == "" {
 		http.Error(w, "Not authorized", http.StatusUnauthorized)
 		return

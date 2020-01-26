@@ -97,7 +97,6 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		t := time.Now().Format(time.RFC3339)
 		events, err := srv.Events.List("primary").ShowDeleted(false).
 			SingleEvents(true).TimeMin(t).MaxResults(int64(maxResults)).OrderBy("startTime").Do()
-
 		if err != nil {
 			p.postCommandResponse(args, fmt.Sprintf("Unable to retrieve next %v of the user's events: %v", maxResults, err))
 			return &model.CommandResponse{}, nil
@@ -155,7 +154,6 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 
 		events, err := srv.Events.List("primary").ShowDeleted(false).
 			SingleEvents(true).TimeMin(beginOfDay).TimeMax(endOfDay).OrderBy("startTime").Do()
-
 		if err != nil {
 			p.postCommandResponse(args, "Error retrieiving events")
 			return &model.CommandResponse{}, nil

@@ -390,11 +390,11 @@ func (p *Plugin) printEventSummary(userID string, item *calendar.Event) string {
 	return text
 }
 
-func (p *Plugin) insertSort(data []*calendar.Event, el *calendar.Event) []*calendar.Event {
-	index := sort.Search(len(data), func(i int) bool { return data[i].Start.DateTime > el.Start.DateTime })
+func (p *Plugin) insertSort(data []*calendar.Event, event *calendar.Event) []*calendar.Event {
+	index := sort.Search(len(data), func(i int) bool { return data[i].Start.DateTime > event.Start.DateTime })
 	data = append(data, &calendar.Event{})
 	copy(data[index+1:], data[index:])
-	data[index] = el
+	data[index] = event
 	return data
 }
 
