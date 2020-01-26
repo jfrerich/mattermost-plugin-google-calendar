@@ -16,14 +16,14 @@ const dateFormat = "Monday, January 2, 2006"
 const timeFormat = "3:04 PM MST"
 const customFormat = "2006-01-02@15:04"
 const customFormatNoTime = "2006-01-02"
-const COMMAND_HELP = `* |/calendar connect| - Connect your Google Calendar with your Mattermost account
+const commandHelp = `* |/calendar connect| - Connect your Google Calendar with your Mattermost account
 * |/calendar list [number_of_events]| - List the upcoming X number of events.
 	* |number_of_events| should be a number or can be left blank. By default is set to 5
 * |/calendar summary [date]| - Get a break down of a particular date.
 	* |date| should be a date in the format of YYYY-MM-DD or can be "tomorrow" or can be left blank. By default retrieves todays summary breakdown
 * |/calendar create "[title_of_event]" [start_datetime] [end_datetime]| - Create a event with a title and start date-time and end date-time
 	* |title_of_event| can be any title you like for the event. It **MUST** be placed within quotes.
-	* |start_datetime| This is the time the event starts. It should be a date and time in the format of YYYY-MM-DD@HH:MM in 24 hour time format. 
+	* |start_datetime| This is the time the event starts. It should be a date and time in the format of YYYY-MM-DD@HH:MM in 24 hour time format.
 	* |end_datetime| This is the time the event ends. It should be a date and time in the format of YYYY-MM-DD@HH:MM in 24 hour time format.
 `
 
@@ -40,13 +40,15 @@ func getCommand() *model.Command {
 
 func (p *Plugin) postCommandResponse(args *model.CommandArgs, text string) {
 	post := &model.Post{
-		UserId:    p.botId,
+		UserId:    p.botID,
 		ChannelId: args.ChannelId,
 		Message:   text,
 	}
 	_ = p.API.SendEphemeralPost(args.UserId, post)
 }
 
+// ExecuteCommand executes a command that has been previously registered via the RegisterCommand
+// API.
 func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	userID := args.UserId
 	split := strings.Fields(args.Command)
@@ -66,10 +68,9 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		if config.ServiceSettings.SiteURL == nil {
 			p.postCommandResponse(args, "Invalid SiteURL")
 			return &model.CommandResponse{}, nil
-		} else {
-			p.postCommandResponse(args, fmt.Sprintf("[Click here to link your Google Calendar.](%s/plugins/calendar/oauth/connect)", *config.ServiceSettings.SiteURL))
-			return &model.CommandResponse{}, nil
 		}
+		p.postCommandResponse(args, fmt.Sprintf("[Click here to link your Google Calendar.](%s/plugins/calendar/oauth/connect)", *config.ServiceSettings.SiteURL))
+		return &model.CommandResponse{}, nil
 	}
 
 	srv, err := p.getCalendarService(args.UserId)
@@ -105,36 +106,35 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		if len(events.Items) == 0 {
 			p.postCommandResponse(args, "No upcoming events")
 			return &model.CommandResponse{}, nil
-		} else {
-			text := "# Upcoming Events: \n"
-			var date string
-			var startTime time.Time
-			for _, item := range events.Items {
-				startTime, _ = time.Parse(time.RFC3339, item.Start.DateTime)
-				endTime, _ := time.Parse(time.RFC3339, item.End.DateTime)
-				if date != startTime.Format(dateFormat) {
-					date = startTime.Format(dateFormat)
-
-					currentTime := time.Now().In(location).Format(dateFormat)
-					tomorrowTime := time.Now().AddDate(0, 0, 1).In(location).Format(dateFormat)
-					titleForEventsToDisplay := date
-					if date == currentTime {
-						titleForEventsToDisplay = fmt.Sprintf("Today (%s)", date)
-					} else if date == tomorrowTime {
-						titleForEventsToDisplay = fmt.Sprintf("Tomorrow (%s)", date)
-					}
-					text += fmt.Sprintf("### %v\n", titleForEventsToDisplay)
-				}
-				timeToDisplay := fmt.Sprintf("%v to %v", startTime.Format(timeFormat), endTime.Format(timeFormat))
-				if startTime.Format(timeFormat) == "12:00 AM UTC" && endTime.Format(timeFormat) == "12:00 AM UTC" {
-					timeToDisplay = "All-day"
-				}
-				text += fmt.Sprintf("- [%v](%s) @ %s | [Delete Event](%s/plugins/calendar/delete?evtid=%s)\n",
-					item.Summary, item.HtmlLink, timeToDisplay, *config.ServiceSettings.SiteURL, item.Id)
-			}
-			p.postCommandResponse(args, text)
-			return &model.CommandResponse{}, nil
 		}
+		text := "# Upcoming Events: \n"
+		var date string
+		var startTime time.Time
+		for _, item := range events.Items {
+			startTime, _ = time.Parse(time.RFC3339, item.Start.DateTime)
+			endTime, _ := time.Parse(time.RFC3339, item.End.DateTime)
+			if date != startTime.Format(dateFormat) {
+				date = startTime.Format(dateFormat)
+
+				currentTime := time.Now().In(location).Format(dateFormat)
+				tomorrowTime := time.Now().AddDate(0, 0, 1).In(location).Format(dateFormat)
+				titleForEventsToDisplay := date
+				if date == currentTime {
+					titleForEventsToDisplay = fmt.Sprintf("Today (%s)", date)
+				} else if date == tomorrowTime {
+					titleForEventsToDisplay = fmt.Sprintf("Tomorrow (%s)", date)
+				}
+				text += fmt.Sprintf("### %v\n", titleForEventsToDisplay)
+			}
+			timeToDisplay := fmt.Sprintf("%v to %v", startTime.Format(timeFormat), endTime.Format(timeFormat))
+			if startTime.Format(timeFormat) == "12:00 AM UTC" && endTime.Format(timeFormat) == "12:00 AM UTC" {
+				timeToDisplay = "All-day"
+			}
+			text += fmt.Sprintf("- [%v](%s) @ %s | [Delete Event](%s/plugins/calendar/delete?evtid=%s)\n",
+				item.Summary, item.HtmlLink, timeToDisplay, *config.ServiceSettings.SiteURL, item.Id)
+		}
+		p.postCommandResponse(args, text)
+		return &model.CommandResponse{}, nil
 	case "summary":
 		date := time.Now().In(location)
 		dateToDisplay := "Today"
@@ -164,14 +164,13 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		if len(events.Items) == 0 {
 			p.CreateBotDMPost(userID, "It seems that you don't have any events happening.")
 			return &model.CommandResponse{}, nil
-		} else {
-			text := fmt.Sprintf("#### %s Schedule:\n", titleToDisplay)
-			for _, item := range events.Items {
-				text += p.printEventSummary(userID, item)
-			}
-			p.CreateBotDMPost(userID, text)
-			return &model.CommandResponse{}, nil
 		}
+		text := fmt.Sprintf("#### %s Schedule:\n", titleToDisplay)
+		for _, item := range events.Items {
+			text += p.printEventSummary(userID, item)
+		}
+		p.CreateBotDMPost(userID, text)
+		return &model.CommandResponse{}, nil
 	case "create":
 		r, _ := regexp.Compile("\"(.*?)\"")
 
@@ -198,7 +197,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		return &model.CommandResponse{}, nil
 
 	case "help":
-		text := "###### Mattermost Google Calendar Plugin - Slash Command Help\n" + strings.Replace(COMMAND_HELP, "|", "`", -1)
+		text := "###### Mattermost Google Calendar Plugin - Slash Command Help\n" + strings.Replace(commandHelp, "|", "`", -1)
 		p.postCommandResponse(args, text)
 		return &model.CommandResponse{}, nil
 	}

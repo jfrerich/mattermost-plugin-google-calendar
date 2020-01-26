@@ -19,16 +19,16 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
-// Create a post as google calendar bot to the user directly
+// CreateBotDMPost post as google calendar bot to the user directly
 func (p *Plugin) CreateBotDMPost(userID, message string) *model.AppError {
-	channel, err := p.API.GetDirectChannel(userID, p.botId)
+	channel, err := p.API.GetDirectChannel(userID, p.botID)
 	if err != nil {
 		mlog.Error("Couldn't get bot's DM channel", mlog.String("user_id", userID))
 		return err
 	}
 
 	post := &model.Post{
-		UserId:    p.botId,
+		UserId:    p.botID,
 		ChannelId: channel.Id,
 		Message:   message,
 	}
@@ -44,7 +44,7 @@ func (p *Plugin) CreateBotDMPost(userID, message string) *model.AppError {
 // CalendarConfig will return a oauth2 Config with the field set
 func (p *Plugin) CalendarConfig() *oauth2.Config {
 	config := p.API.GetConfig()
-	clientID := p.getConfiguration().CalendarClientId
+	clientID := p.getConfiguration().CalendarClientID
 	clientSecret := p.getConfiguration().CalendarClientSecret
 
 	return &oauth2.Config{
@@ -370,7 +370,7 @@ func (p *Plugin) printEventSummary(userID string, item *calendar.Event) string {
 	attendee := p.retrieveMyselfForEvent(item)
 	if attendee != nil {
 		if attendee.ResponseStatus == "needsAction" {
-			config := p.API.GetConfig()
+			config = p.API.GetConfig()
 			url := fmt.Sprintf("%s/plugins/calendar/handleresponse?evtid=%s&",
 				*config.ServiceSettings.SiteURL, item.Id)
 			text += fmt.Sprintf("**Going?**: [Yes](%s) | [No](%s) | [Maybe](%s)\n",
