@@ -34,7 +34,7 @@ These can be obtained through the following procedure:
     2. Select Application type: `Web Application`
     3. Name: `Mattermost Google Calendar Client`
     4. `Authorized Javascript Origins:` - `<Mattermost server URL>` 
-    5. `Authorized redirect URIs:` - `<Mattermost server URL>/plugins/calendar/oauth/complete`
+    5. `Authorized redirect URIs:` - `<Mattermost server URL>/plugins/com.mattermost.google-calendar/oauth/complete`
 6. After creating the Oauth client, copy the Client ID and secret.
 7. Upload the plugin to Mattermost and go to `Google Calendar Plugin settings`. Paste the client id and secret and select a user for the plugin to post event messages with.
 8. Enable the plugin and you should be able to see event reminder notifications.
