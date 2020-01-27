@@ -15,7 +15,7 @@
         "bundle_path": "webapp/dist/main.js"
     },
     "settings_schema": {
-        "header": "Enjoy using this plugin? Want to contribute and make it more awesome? You can [fork the repository](https://github.com/hahmadia/google-calendar-plugin/) and submit your pull requests!",
+        "header": "Enjoy using this plugin? Want to contribute and make it more awesome? You can [fork the repository](https://github.com/mattermost/mattermost-plugin-google-calendar) and submit your pull requests!",
         "settings": [
             {
                 "key": "CalendarClientId",
