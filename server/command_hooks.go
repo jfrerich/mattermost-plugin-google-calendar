@@ -17,11 +17,11 @@ const timeFormat = "3:04 PM MST"
 const customFormat = "2006-01-02@15:04"
 const customFormatNoTime = "2006-01-02"
 const commandHelp = `* |/calendar connect| - Connect your Google Calendar with your Mattermost account
-* |/calendar list [number_of_events]| - List the upcoming X number of events.
+* |/gcalendar list [number_of_events]| - List the upcoming X number of events.
 	* |number_of_events| should be a number or can be left blank. By default is set to 5
-* |/calendar summary [date]| - Get a break down of a particular date.
+* |/gcalendar summary [date]| - Get a break down of a particular date.
 	* |date| should be a date in the format of YYYY-MM-DD or can be "tomorrow" or can be left blank. By default retrieves todays summary breakdown
-* |/calendar create "[title_of_event]" [start_datetime] [end_datetime]| - Create a event with a title and start date-time and end date-time
+* |/gcalendar create "[title_of_event]" [start_datetime] [end_datetime]| - Create a event with a title and start date-time and end date-time
 	* |title_of_event| can be any title you like for the event. It **MUST** be placed within quotes.
 	* |start_datetime| This is the time the event starts. It should be a date and time in the format of YYYY-MM-DD@HH:MM in 24 hour time format.
 	* |end_datetime| This is the time the event ends. It should be a date and time in the format of YYYY-MM-DD@HH:MM in 24 hour time format.
@@ -29,7 +29,7 @@ const commandHelp = `* |/calendar connect| - Connect your Google Calendar with y
 
 func getCommand() *model.Command {
 	return &model.Command{
-		Trigger:          "calendar",
+		Trigger:          "/gcalendar",
 		DisplayName:      "Google Calendar",
 		Description:      "Integration with Google Calendar",
 		AutoComplete:     true,
@@ -60,7 +60,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		action = split[1]
 	}
 
-	if command != "/calendar" {
+	if command != "/gcalendar" {
 		return &model.CommandResponse{}, nil
 	}
 

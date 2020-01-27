@@ -124,7 +124,7 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 	// Post intro post
 	message := "#### Welcome to the Mattermost Google Calendar Plugin!\n" +
 		"You've successfully connected your Mattermost account to your Google Calendar.\n" +
-		"Please type **/calendar help** to understand how to user this plugin. "
+		"Please type **/gcalendar help** to understand how to user this plugin. "
 
 	p.CreateBotDMPost(userID, message)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
