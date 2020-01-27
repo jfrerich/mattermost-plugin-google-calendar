@@ -29,7 +29,7 @@ const commandHelp = `* |/calendar connect| - Connect your Google Calendar with y
 
 func getCommand() *model.Command {
 	return &model.Command{
-		Trigger:          "/gcalendar",
+		Trigger:          "gcalendar",
 		DisplayName:      "Google Calendar",
 		Description:      "Integration with Google Calendar",
 		AutoComplete:     true,
