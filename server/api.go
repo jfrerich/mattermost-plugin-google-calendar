@@ -27,9 +27,9 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Type", "application/json")
 	switch path := r.URL.Path; path {
 	case "/oauth/connect":
-		p.connectCalendar(w, r)
+		p.oauthConnect(w, r)
 	case "/oauth/complete":
-		p.completeCalendar(w, r)
+		p.oauthComplete(w, r)
 	case "/delete":
 		p.deleteEvent(w, r)
 	case "/handleresponse":
@@ -41,7 +41,7 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	}
 }
 
-func (p *Plugin) connectCalendar(w http.ResponseWriter, r *http.Request) {
+func (p *Plugin) oauthConnect(w http.ResponseWriter, r *http.Request) {
 	authedUserID := r.Header.Get("Mattermost-User-ID")
 	if authedUserID == "" {
 		http.Error(w, "Not authorized", http.StatusUnauthorized)
@@ -62,7 +62,7 @@ func (p *Plugin) connectCalendar(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
-func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
+func (p *Plugin) oauthComplete(w http.ResponseWriter, r *http.Request) {
 	html := `
 	<!DOCTYPE html>
 	<html>
@@ -124,7 +124,7 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 	// Post intro post
 	message := "#### Welcome to the Mattermost Google Calendar Plugin!\n" +
 		"You've successfully connected your Mattermost account to your Google Calendar.\n" +
-		"Please type **/gcalendar help** to understand how to user this plugin. "
+		"Please type **/gcalendar help** to understand how to use this plugin. "
 
 	p.CreateBotDMPost(userID, message)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
