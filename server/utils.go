@@ -199,17 +199,18 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 
 				self := p.retrieveMyselfForEvent(changedEvent)
 				if self != nil && changedEvent.Status != "cancelled" {
-					if self.ResponseStatus == "needsAction" {
+					switch self.ResponseStatus {
+					case "needsAction":
 						config := p.API.GetConfig()
 						url := fmt.Sprintf("%s/plugins/calendar/handleresponse?evtid=%s&",
 							*config.ServiceSettings.SiteURL, changedEvent.Id)
 						textToPost += fmt.Sprintf("**Going?**: [Yes](%s) | [No](%s) | [Maybe](%s)\n\n",
 							url+"response=accepted", url+"response=declined", url+"response=tentative")
-					} else if self.ResponseStatus == "declined" {
+					case "declined":
 						textToPost += fmt.Sprintf("**Going?**: No\n\n")
-					} else if self.ResponseStatus == "tentative" {
+					case "tentative":
 						textToPost += fmt.Sprintf("**Going?**: Maybe\n\n")
-					} else {
+					default:
 						textToPost += fmt.Sprintf("**Going?**: Yes\n\n")
 					}
 				}
@@ -369,17 +370,18 @@ func (p *Plugin) printEventSummary(userID string, item *calendar.Event) string {
 
 	attendee := p.retrieveMyselfForEvent(item)
 	if attendee != nil {
-		if attendee.ResponseStatus == "needsAction" {
+		switch attendee.ResponseStatus {
+		case "needsAction":
 			config = p.API.GetConfig()
 			url := fmt.Sprintf("%s/plugins/calendar/handleresponse?evtid=%s&",
 				*config.ServiceSettings.SiteURL, item.Id)
 			text += fmt.Sprintf("**Going?**: [Yes](%s) | [No](%s) | [Maybe](%s)\n",
 				url+"response=accepted", url+"response=declined", url+"response=tentative")
-		} else if attendee.ResponseStatus == "declined" {
+		case "declined":
 			text += fmt.Sprintf("**Going?**: No\n")
-		} else if attendee.ResponseStatus == "tentative" {
+		case "tentative":
 			text += fmt.Sprintf("**Going?**: Maybe\n")
-		} else {
+		default:
 			text += fmt.Sprintf("**Going?**: Yes\n")
 		}
 	}
