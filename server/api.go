@@ -27,9 +27,9 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Type", "application/json")
 	switch path := r.URL.Path; path {
 	case "/oauth/connect":
-		p.connectCalendar(w, r)
+		p.oauthConnect(w, r)
 	case "/oauth/complete":
-		p.completeCalendar(w, r)
+		p.oauthComplete(w, r)
 	case "/delete":
 		p.deleteEvent(w, r)
 	case "/handleresponse":
@@ -41,15 +41,14 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	}
 }
 
-func (p *Plugin) connectCalendar(w http.ResponseWriter, r *http.Request) {
-	authedUserId := r.Header.Get("Mattermost-User-ID")
-
-	if authedUserId == "" {
+func (p *Plugin) oauthConnect(w http.ResponseWriter, r *http.Request) {
+	authedUserID := r.Header.Get("Mattermost-User-ID")
+	if authedUserID == "" {
 		http.Error(w, "Not authorized", http.StatusUnauthorized)
 		return
 	}
 
-	state := fmt.Sprintf("%v_%v", model.NewId()[10], authedUserId)
+	state := fmt.Sprintf("%v_%v", model.NewId()[10], authedUserID)
 
 	if err := p.API.KVSet(state, []byte(state)); err != nil {
 		http.Error(w, "Failed to save state", http.StatusBadRequest)
@@ -63,7 +62,7 @@ func (p *Plugin) connectCalendar(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
-func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
+func (p *Plugin) oauthComplete(w http.ResponseWriter, r *http.Request) {
 	html := `
 	<!DOCTYPE html>
 	<html>
@@ -77,12 +76,12 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 		</body>
 	</html>
 	`
-	authedUserId := r.Header.Get("Mattermost-User-ID")
+	authedUserID := r.Header.Get("Mattermost-User-ID")
 	state := r.FormValue("state")
 	code := r.FormValue("code")
-	userId := strings.Split(state, "_")[1]
+	userID := strings.Split(state, "_")[1]
 	config := p.CalendarConfig()
-	if authedUserId == "" || userId != authedUserId {
+	if authedUserID == "" || userID != authedUserID {
 		http.Error(w, "Not authorized", http.StatusUnauthorized)
 		return
 	}
@@ -112,22 +111,22 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p.API.KVSet(userId+"calendarToken", tokenJSON)
-	p.CalendarSync(userId)
+	p.API.KVSet(userID+"calendarToken", tokenJSON)
+	p.CalendarSync(userID)
 
-	if err = p.setupCalendarWatch(userId); err != nil {
+	if err = p.setupCalendarWatch(userID); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	p.startCronJob(authedUserId)
+	p.startCronJob(authedUserID)
 
 	// Post intro post
 	message := "#### Welcome to the Mattermost Google Calendar Plugin!\n" +
 		"You've successfully connected your Mattermost account to your Google Calendar.\n" +
-		"Please type **/calendar help** to understand how to user this plugin. "
+		"Please type **/gcalendar help** to understand how to use this plugin. "
 
-	p.CreateBotDMPost(userId, message)
+	p.CreateBotDMPost(userID, message)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprint(w, html)
 }

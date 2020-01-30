@@ -22,21 +22,22 @@ type Plugin struct {
 	// setConfiguration for usage.
 	configuration *configuration
 
-	botId string
+	botID string
 }
 
+// OnActivate is invoked when the plugin is activated.
 func (p *Plugin) OnActivate() error {
 	p.API.RegisterCommand(getCommand())
 
-	botId, err := p.Helpers.EnsureBot(&model.Bot{
-		Username:    "calendar",
+	botID, err := p.Helpers.EnsureBot(&model.Bot{
+		Username:    "gcalendar",
 		DisplayName: "Google Calendar",
 		Description: "Created by the Google Calendar plugin.",
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to ensure google calendar bot")
 	}
-	p.botId = botId
+	p.botID = botID
 
 	bundlePath, err := p.API.GetBundlePath()
 	if err != nil {
@@ -48,7 +49,7 @@ func (p *Plugin) OnActivate() error {
 		return errors.Wrap(err, "couldn't read profile image")
 	}
 
-	appErr := p.API.SetProfileImage(botId, profileImage)
+	appErr := p.API.SetProfileImage(botID, profileImage)
 	if appErr != nil {
 		return errors.Wrap(appErr, "couldn't set profile image")
 	}

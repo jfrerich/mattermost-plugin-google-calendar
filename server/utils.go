@@ -19,16 +19,16 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
-// Create a post as google calendar bot to the user directly
+// CreateBotDMPost post as google calendar bot to the user directly
 func (p *Plugin) CreateBotDMPost(userID, message string) *model.AppError {
-	channel, err := p.API.GetDirectChannel(userID, p.botId)
+	channel, err := p.API.GetDirectChannel(userID, p.botID)
 	if err != nil {
 		mlog.Error("Couldn't get bot's DM channel", mlog.String("user_id", userID))
 		return err
 	}
 
 	post := &model.Post{
-		UserId:    p.botId,
+		UserId:    p.botID,
 		ChannelId: channel.Id,
 		Message:   message,
 	}
@@ -44,7 +44,7 @@ func (p *Plugin) CreateBotDMPost(userID, message string) *model.AppError {
 // CalendarConfig will return a oauth2 Config with the field set
 func (p *Plugin) CalendarConfig() *oauth2.Config {
 	config := p.API.GetConfig()
-	clientID := p.getConfiguration().CalendarClientId
+	clientID := p.getConfiguration().CalendarClientID
 	clientSecret := p.getConfiguration().CalendarClientSecret
 
 	return &oauth2.Config{
@@ -199,17 +199,18 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 
 				self := p.retrieveMyselfForEvent(changedEvent)
 				if self != nil && changedEvent.Status != "cancelled" {
-					if self.ResponseStatus == "needsAction" {
+					switch self.ResponseStatus {
+					case "needsAction":
 						config := p.API.GetConfig()
 						url := fmt.Sprintf("%s/plugins/calendar/handleresponse?evtid=%s&",
 							*config.ServiceSettings.SiteURL, changedEvent.Id)
 						textToPost += fmt.Sprintf("**Going?**: [Yes](%s) | [No](%s) | [Maybe](%s)\n\n",
 							url+"response=accepted", url+"response=declined", url+"response=tentative")
-					} else if self.ResponseStatus == "declined" {
+					case "declined":
 						textToPost += fmt.Sprintf("**Going?**: No\n\n")
-					} else if self.ResponseStatus == "tentative" {
+					case "tentative":
 						textToPost += fmt.Sprintf("**Going?**: Maybe\n\n")
-					} else {
+					default:
 						textToPost += fmt.Sprintf("**Going?**: Yes\n\n")
 					}
 				}
@@ -369,17 +370,18 @@ func (p *Plugin) printEventSummary(userID string, item *calendar.Event) string {
 
 	attendee := p.retrieveMyselfForEvent(item)
 	if attendee != nil {
-		if attendee.ResponseStatus == "needsAction" {
-			config := p.API.GetConfig()
+		switch attendee.ResponseStatus {
+		case "needsAction":
+			config = p.API.GetConfig()
 			url := fmt.Sprintf("%s/plugins/calendar/handleresponse?evtid=%s&",
 				*config.ServiceSettings.SiteURL, item.Id)
 			text += fmt.Sprintf("**Going?**: [Yes](%s) | [No](%s) | [Maybe](%s)\n",
 				url+"response=accepted", url+"response=declined", url+"response=tentative")
-		} else if attendee.ResponseStatus == "declined" {
+		case "declined":
 			text += fmt.Sprintf("**Going?**: No\n")
-		} else if attendee.ResponseStatus == "tentative" {
+		case "tentative":
 			text += fmt.Sprintf("**Going?**: Maybe\n")
-		} else {
+		default:
 			text += fmt.Sprintf("**Going?**: Yes\n")
 		}
 	}
@@ -390,11 +392,11 @@ func (p *Plugin) printEventSummary(userID string, item *calendar.Event) string {
 	return text
 }
 
-func (p *Plugin) insertSort(data []*calendar.Event, el *calendar.Event) []*calendar.Event {
-	index := sort.Search(len(data), func(i int) bool { return data[i].Start.DateTime > el.Start.DateTime })
+func (p *Plugin) insertSort(data []*calendar.Event, event *calendar.Event) []*calendar.Event {
+	index := sort.Search(len(data), func(i int) bool { return data[i].Start.DateTime > event.Start.DateTime })
 	data = append(data, &calendar.Event{})
 	copy(data[index+1:], data[index:])
-	data[index] = el
+	data[index] = event
 	return data
 }
 
